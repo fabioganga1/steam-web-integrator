@@ -18,7 +18,8 @@ qualquer página com links para `store.steampowered.com`, `steamcommunity.com`,
 ## Instalação
 
 1. Instala o [Tampermonkey](https://www.tampermonkey.net/) (ou Violentmonkey).
-2. Abre o ficheiro [`steam-lens.user.js`](steam-lens.user.js) e importa-o no Tampermonkey.
+2. **[Clica aqui para instalar](https://github.com/fabioganga1/steam-lens/raw/master/steam-lens.user.js)**
+   — o Tampermonkey abre a instalação automaticamente e mantém o script atualizado.
 3. Inicia sessão na [Steam](https://store.steampowered.com/) no browser — é daí que
    o script obtém os teus dados (jogos, wishlist, ignorados, seguidos).
 
@@ -32,6 +33,8 @@ qualquer página com links para `store.steampowered.com`, `steamcommunity.com`,
 ## Menu do Tampermonkey
 
 - **↻ Atualizar dados da Steam** — força refrescamento imediato da cache.
+- **👁 Mostrar/esconder jogos que não tens** — esconde os pontos "não tens" para
+  reduzir ruído visual (útil em páginas com centenas de links).
 - **🧹 Limpar cache** — apaga os dados guardados localmente.
 
 ## Créditos

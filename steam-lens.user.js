@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Steam Lens
 // @namespace    fabioganga1
-// @version      0.1.0
+// @version      0.2.0
 // @description  Marca automaticamente links da Steam em qualquer página: jogos que já tens, na wishlist, ignorados ou seguidos. Projeto original de Fabio, inspirado no conceito do Steam Web Integration.
 // @author       Fabio (fabioganga1)
 // @icon         https://store.steampowered.com/favicon.ico
@@ -16,6 +16,10 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @run-at       document-idle
+// @updateURL    https://github.com/fabioganga1/steam-lens/raw/master/steam-lens.user.js
+// @downloadURL  https://github.com/fabioganga1/steam-lens/raw/master/steam-lens.user.js
+// @supportURL   https://github.com/fabioganga1/steam-lens/issues
+// @homepageURL  https://github.com/fabioganga1/steam-lens
 // ==/UserScript==
 
 /*
@@ -55,10 +59,12 @@
     const SUB_RE = /(?:store\.steampowered\.com|steamdb\.info)\/sub\/(\d+)/;
 
     const MARKED_ATTR = "data-steam-lens";
+    const SHOW_UNOWNED_KEY = "lens_show_unowned";
 
     // ---------------------------------------------------------------- estado
 
     let data = null; // { owned:Set, wishlist:Set, ignored:Set, followed:Set, packages:Set }
+    let showUnowned = GM_getValue(SHOW_UNOWNED_KEY, true);
 
     // ---------------------------------------------------------------- dados
 
@@ -181,8 +187,11 @@
         const subMatch = SUB_RE.exec(href);
         if (subMatch) {
             const subID = Number(subMatch[1]);
-            const kind = data.packages.has(subID) ? "sub" : "subUnowned";
-            el.after(buildBadge([kind], `sub ${subID}`));
+            const owned = data.packages.has(subID);
+            if (!owned && !showUnowned) {
+                return;
+            }
+            attachBadge(el, buildBadge([owned ? "sub" : "subUnowned"], `sub ${subID}`));
             return;
         }
 
@@ -195,7 +204,19 @@
         if (data.followed.has(appID) && !data.owned.has(appID)) {
             kinds.push("followed");
         }
-        el.after(buildBadge(kinds, `app ${appID}`));
+        if (kinds[0] === "unowned" && kinds.length === 1 && !showUnowned) {
+            return;
+        }
+        attachBadge(el, buildBadge(kinds, `app ${appID}`));
+    }
+
+    function attachBadge(el, badge) {
+        el.after(badge);
+        // Alguns layouts (cartões com overflow:hidden) cortam o emblema
+        const parent = el.parentElement;
+        if (parent && getComputedStyle(parent).overflow === "hidden") {
+            parent.style.overflow = "visible";
+        }
     }
 
     function scan(root = document.body) {
@@ -279,6 +300,13 @@
             clearBadges();
             scan();
         }
+    });
+
+    GM_registerMenuCommand("👁 Mostrar/esconder jogos que não tens", () => {
+        showUnowned = !showUnowned;
+        GM_setValue(SHOW_UNOWNED_KEY, showUnowned);
+        clearBadges();
+        scan();
     });
 
     GM_registerMenuCommand("🧹 Limpar cache", () => {
