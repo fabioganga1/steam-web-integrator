@@ -1,4 +1,4 @@
-# <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" width="28" alt="Steam"> Steam Web Integration
+# <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" width="28" alt="Steam"> Steam Web Integrator
 
 Userscript que marca automaticamente **links da Steam em qualquer página web** com um
 pequeno emblema a indicar a tua relação com o jogo:
@@ -18,7 +18,7 @@ qualquer página com links para `store.steampowered.com`, `steamcommunity.com`,
 ## Instalação
 
 1. Instala o [Tampermonkey](https://www.tampermonkey.net/) (ou Violentmonkey).
-2. **[Clica aqui para instalar](https://github.com/fabioganga1/steam-web-integration/raw/master/steam-web-integration.user.js)**
+2. **[Clica aqui para instalar](https://github.com/fabioganga1/steam-web-integrator/raw/master/steam-web-integrator.user.js)**
    — o Tampermonkey abre a instalação automaticamente e mantém o script atualizado.
 3. Inicia sessão na [Steam](https://store.steampowered.com/) no browser — é daí que
    o script obtém os teus dados (jogos, wishlist, ignorados, seguidos).

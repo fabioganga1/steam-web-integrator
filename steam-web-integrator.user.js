@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Steam Web Integration
+// @name         Steam Web Integrator
 // @namespace    fabioganga1
-// @version      0.3.0
+// @version      0.4.0
 // @description  Marca automaticamente links da Steam em qualquer página: jogos que já tens, na wishlist, ignorados ou seguidos.
 // @author       Fabio (fabioganga1)
 // @icon         https://store.steampowered.com/favicon.ico
@@ -16,14 +16,14 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @run-at       document-idle
-// @updateURL    https://github.com/fabioganga1/steam-web-integration/raw/master/steam-web-integration.user.js
-// @downloadURL  https://github.com/fabioganga1/steam-web-integration/raw/master/steam-web-integration.user.js
-// @supportURL   https://github.com/fabioganga1/steam-web-integration/issues
-// @homepageURL  https://github.com/fabioganga1/steam-web-integration
+// @updateURL    https://github.com/fabioganga1/steam-web-integrator/raw/master/steam-web-integrator.user.js
+// @downloadURL  https://github.com/fabioganga1/steam-web-integrator/raw/master/steam-web-integrator.user.js
+// @supportURL   https://github.com/fabioganga1/steam-web-integrator/issues
+// @homepageURL  https://github.com/fabioganga1/steam-web-integrator
 // ==/UserScript==
 
 /*
- * Steam Web Integration — marca os links da Steam em qualquer site.
+ * Steam Web Integrator — marca os links da Steam em qualquer site.
  *
  * Como funciona:
  *  1. Vai buscar os teus dados à Steam (jogos, wishlist, ignorados, seguidos)
