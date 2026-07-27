@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Steam Lens
+// @name         Steam Web Integration
 // @namespace    fabioganga1
-// @version      0.2.0
-// @description  Marca automaticamente links da Steam em qualquer página: jogos que já tens, na wishlist, ignorados ou seguidos. Projeto original de Fabio, inspirado no conceito do Steam Web Integration.
+// @version      0.3.0
+// @description  Marca automaticamente links da Steam em qualquer página: jogos que já tens, na wishlist, ignorados ou seguidos.
 // @author       Fabio (fabioganga1)
 // @icon         https://store.steampowered.com/favicon.ico
 // @match        *://*/*
@@ -16,14 +16,14 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
 // @run-at       document-idle
-// @updateURL    https://github.com/fabioganga1/steam-lens/raw/master/steam-lens.user.js
-// @downloadURL  https://github.com/fabioganga1/steam-lens/raw/master/steam-lens.user.js
-// @supportURL   https://github.com/fabioganga1/steam-lens/issues
-// @homepageURL  https://github.com/fabioganga1/steam-lens
+// @updateURL    https://github.com/fabioganga1/steam-web-integration/raw/master/steam-web-integration.user.js
+// @downloadURL  https://github.com/fabioganga1/steam-web-integration/raw/master/steam-web-integration.user.js
+// @supportURL   https://github.com/fabioganga1/steam-web-integration/issues
+// @homepageURL  https://github.com/fabioganga1/steam-web-integration
 // ==/UserScript==
 
 /*
- * Steam Lens — vê à lupa os links da Steam em qualquer site.
+ * Steam Web Integration — marca os links da Steam em qualquer site.
  *
  * Como funciona:
  *  1. Vai buscar os teus dados à Steam (jogos, wishlist, ignorados, seguidos)
