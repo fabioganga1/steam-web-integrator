@@ -1,4 +1,4 @@
-# <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" width="28" alt="Steam"> Steam Web Integrator
+# <img src="docs/steam-icon.svg" width="32" alt="Steam"> Steam Web Integrator
 
 ![Versão](https://img.shields.io/badge/vers%C3%A3o-0.4.0-blue)
 ![Tampermonkey](https://img.shields.io/badge/Tampermonkey-compat%C3%ADvel-00485b?logo=tampermonkey)
