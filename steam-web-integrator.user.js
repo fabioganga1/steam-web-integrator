@@ -1,14 +1,16 @@
 // ==UserScript==
 // @name         Steam Web Integrator
 // @namespace    fabioganga1
-// @version      0.4.0
-// @description  Marca automaticamente links da Steam em qualquer página: jogos que já tens, na wishlist, ignorados ou seguidos.
+// @version      0.5.0
+// @description  Marca automaticamente links da Steam em qualquer página: jogos que já tens, na wishlist, ignorados, seguidos, DLC, removidos da loja, com cartas ou em bundles.
 // @author       Fabio (fabioganga1)
 // @icon         https://store.steampowered.com/favicon.ico
 // @match        *://*/*
 // @exclude      *://store.steampowered.com/*
 // @exclude      *://steamcommunity.com/*
 // @connect      store.steampowered.com
+// @connect      bartervg.com
+// @connect      steam-tracker.com
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
@@ -60,11 +62,23 @@
 
     const MARKED_ATTR = "data-steam-lens";
     const SHOW_UNOWNED_KEY = "lens_show_unowned";
+    const EXTRAS_KEY = "lens_extras_enabled";
+    const EXTRAS_TTL_MIN = 2880; // 48h — estas listas mudam devagar
+
+    // Fontes públicas de dados extra (as mesmas usadas pela comunidade Steam)
+    const EXTRA_SOURCES = {
+        dlc:     "https://bartervg.com/browse/dlc/json/",
+        cards:   "https://bartervg.com/browse/cards/json/",
+        bundles: "https://bartervg.com/browse/bundles/json/",
+        limited: "https://bartervg.com/browse/tag/481/json/",
+    };
 
     // ---------------------------------------------------------------- estado
 
     let data = null; // { owned:Set, wishlist:Set, ignored:Set, followed:Set, packages:Set }
+    let extras = { dlc: null, cards: null, bundles: null, limited: null, removed: null };
     let showUnowned = GM_getValue(SHOW_UNOWNED_KEY, true);
+    let extrasEnabled = GM_getValue(EXTRAS_KEY, true);
 
     // ---------------------------------------------------------------- dados
 
@@ -82,7 +96,7 @@
                     try {
                         const json = JSON.parse(res.responseText);
                         if (!json.rgOwnedApps || (json.rgOwnedApps.length === 0 && json.rgOwnedPackages.length === 0)) {
-                            console.warn("[Steam Lens] Sem dados — inicia sessão na Steam no browser.");
+                            console.warn("[Steam Web Integrator] Sem dados — inicia sessão na Steam no browser.");
                             resolve(null);
                             return;
                         }
@@ -97,7 +111,7 @@
                         GM_setValue(CACHE_TIME_KEY, Date.now());
                         resolve(compact);
                     } catch (err) {
-                        console.warn("[Steam Lens] Resposta inesperada da Steam.", err);
+                        console.warn("[Steam Web Integrator] Resposta inesperada da Steam.", err);
                         resolve(null);
                     }
                 },
@@ -105,6 +119,80 @@
                 ontimeout: () => resolve(null),
             });
         });
+    }
+
+    function fetchJSON(url) {
+        return new Promise((resolve) => {
+            GM_xmlhttpRequest({
+                method: "GET",
+                url,
+                timeout: 30000,
+                onload: (res) => {
+                    try {
+                        resolve(JSON.parse(res.responseText));
+                    } catch {
+                        resolve(null);
+                    }
+                },
+                onerror: () => resolve(null),
+                ontimeout: () => resolve(null),
+            });
+        });
+    }
+
+    async function loadExtra(key, url, transform) {
+        const cacheKey = `lens_extra_${key}`;
+        const timeKey = `${cacheKey}_time`;
+        const cached = GM_getValue(cacheKey, null);
+        const age = Date.now() - GM_getValue(timeKey, 0);
+
+        if (cached && age < EXTRAS_TTL_MIN * 60000) {
+            return JSON.parse(cached);
+        }
+
+        let json = await fetchJSON(url);
+        if (json && transform) {
+            json = transform(json);
+        }
+
+        // sanity check: estas listas têm sempre milhares de entradas
+        if (json && Object.keys(json).length > 1000) {
+            GM_setValue(cacheKey, JSON.stringify(json));
+            GM_setValue(timeKey, Date.now());
+            return json;
+        }
+
+        return cached ? JSON.parse(cached) : null;
+    }
+
+    async function loadExtras() {
+        if (!extrasEnabled) {
+            return;
+        }
+
+        const [dlc, cards, bundles, limited, removed] = await Promise.all([
+            loadExtra("dlc", EXTRA_SOURCES.dlc),
+            loadExtra("cards", EXTRA_SOURCES.cards),
+            loadExtra("bundles", EXTRA_SOURCES.bundles),
+            loadExtra("limited", EXTRA_SOURCES.limited),
+            loadExtra("removed", "https://steam-tracker.com/api?action=GetAppListV3", (json) => {
+                if (!json || !json.success || !Array.isArray(json.removed_apps)) {
+                    return null;
+                }
+                const byApp = {};
+                json.removed_apps.forEach((app) => {
+                    byApp[app.appid] = app;
+                });
+                return byApp;
+            }),
+        ]);
+
+        extras = { dlc, cards, bundles, limited, removed };
+
+        if (dlc || cards || bundles || limited || removed) {
+            clearBadges();
+            scan();
+        }
     }
 
     async function loadData(forceRefresh = false) {
@@ -150,18 +238,60 @@
         return "unowned";
     }
 
-    function buildBadge(kinds, id) {
+    function buildBadge(specs, id) {
         const box = document.createElement("sup");
         box.className = "steam-lens-badge";
-        for (const kind of kinds) {
-            const b = BADGES[kind];
+        for (const b of specs) {
             const span = document.createElement("span");
             span.textContent = b.icon;
             span.style.color = b.color;
-            span.title = `Steam Lens — ${b.label} (${id})`;
+            span.title = `Steam Web Integrator — ${b.label} (${id})`;
             box.appendChild(span);
         }
         return box;
+    }
+
+    function extraSpecs(appID) {
+        const specs = [];
+
+        if (extras.dlc && extras.dlc[appID]) {
+            const base = Number(extras.dlc[appID].base_appID);
+            const ownsBase = base && data.owned.has(base);
+            specs.push({
+                icon: "⇩",
+                color: "#a655b2",
+                label: `É DLC${base ? ` de um jogo base que ${ownsBase ? "tens" : "não tens"} (${base})` : ""}`,
+            });
+        }
+
+        if (extras.removed && extras.removed[appID]) {
+            const app = extras.removed[appID];
+            specs.push({
+                icon: "☠",
+                color: "#eceff1",
+                label: `Removido da loja Steam (${(app.category || "delisted").toLowerCase()})`,
+            });
+        }
+
+        if (extras.limited && extras.limited[appID]) {
+            specs.push({ icon: "⚙", color: "#00bcd4", label: "Tem funcionalidades de perfil limitadas" });
+        }
+
+        if (extras.cards && extras.cards[appID] && extras.cards[appID].cards > 0) {
+            const c = extras.cards[appID];
+            specs.push({
+                icon: "🂡",
+                color: "#42a5f5",
+                label: `Tem ${c.cards} carta${c.cards === 1 ? "" : "s"} colecionáve${c.cards === 1 ? "l" : "is"}${c.marketable ? "" : " (não transacionáveis)"}`,
+            });
+        }
+
+        if (extras.bundles && extras.bundles[appID] && extras.bundles[appID].bundles > 0) {
+            const n = extras.bundles[appID].bundles;
+            specs.push({ icon: "🎁", color: "#ffca28", label: `Já esteve em ${n} bundle${n === 1 ? "" : "s"}` });
+        }
+
+        return specs;
     }
 
     function extractAppID(el) {
@@ -191,7 +321,7 @@
             if (!owned && !showUnowned) {
                 return;
             }
-            attachBadge(el, buildBadge([owned ? "sub" : "subUnowned"], `sub ${subID}`));
+            attachBadge(el, buildBadge([BADGES[owned ? "sub" : "subUnowned"]], `sub ${subID}`));
             return;
         }
 
@@ -200,14 +330,17 @@
             return;
         }
 
-        const kinds = [badgeFor(appID)];
+        const ownership = badgeFor(appID);
+        const specs = [BADGES[ownership]];
         if (data.followed.has(appID) && !data.owned.has(appID)) {
-            kinds.push("followed");
+            specs.push(BADGES.followed);
         }
-        if (kinds[0] === "unowned" && kinds.length === 1 && !showUnowned) {
+        specs.push(...extraSpecs(appID));
+
+        if (ownership === "unowned" && specs.length === 1 && !showUnowned) {
             return;
         }
-        attachBadge(el, buildBadge(kinds, `app ${appID}`));
+        attachBadge(el, buildBadge(specs, `app ${appID}`));
     }
 
     function attachBadge(el, badge) {
@@ -292,6 +425,7 @@
         }
         scan();
         observe();
+        loadExtras(); // em segundo plano; quando chegar, refaz os emblemas
     }
 
     GM_registerMenuCommand("↻ Atualizar dados da Steam", async () => {
@@ -309,9 +443,25 @@
         scan();
     });
 
+    GM_registerMenuCommand("🧩 Ligar/desligar extras (DLC, removidos, cartas, bundles)", () => {
+        extrasEnabled = !extrasEnabled;
+        GM_setValue(EXTRAS_KEY, extrasEnabled);
+        if (extrasEnabled) {
+            loadExtras();
+        } else {
+            extras = { dlc: null, cards: null, bundles: null, limited: null, removed: null };
+            clearBadges();
+            scan();
+        }
+    });
+
     GM_registerMenuCommand("🧹 Limpar cache", () => {
         GM_deleteValue(CACHE_KEY);
         GM_deleteValue(CACHE_TIME_KEY);
+        ["dlc", "cards", "bundles", "limited", "removed"].forEach((key) => {
+            GM_deleteValue(`lens_extra_${key}`);
+            GM_deleteValue(`lens_extra_${key}_time`);
+        });
     });
 
     start();

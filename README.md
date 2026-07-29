@@ -1,6 +1,6 @@
 # <img src="docs/steam-icon.svg" width="32" alt="Steam"> Steam Web Integrator
 
-![Versão](https://img.shields.io/badge/vers%C3%A3o-0.4.0-blue)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-0.5.0-blue)
 ![Tampermonkey](https://img.shields.io/badge/Tampermonkey-compat%C3%ADvel-00485b?logo=tampermonkey)
 ![Sem dependências](https://img.shields.io/badge/depend%C3%AAncias-zero-4caf50)
 
@@ -18,6 +18,11 @@ pequeno emblema a indicar a tua relação com o jogo — sem precisares de abrir
 | ★ (amarelo) | Estás a seguir |
 | ∅ (cinzento) | Marcaste como ignorado |
 | • (cinzento azulado) | Não tens |
+| ⇩ (roxo) | É DLC (e diz-te se tens o jogo base) |
+| ☠ (branco) | Removido da loja Steam |
+| ⚙ (ciano) | Funcionalidades de perfil limitadas |
+| 🂡 (azul) | Tem cartas colecionáveis |
+| 🎁 (amarelo) | Já esteve em bundles |
 
 Funciona em fóruns, Reddit, sites de bundles, SteamDB, agregadores de promoções —
 qualquer página com links para `store.steampowered.com`, `steamcommunity.com`,
@@ -33,8 +38,11 @@ qualquer página com links para `store.steampowered.com`, `steamcommunity.com`,
 
 ## Como funciona
 
-- Os dados vêm do endpoint `dynamicstore/userdata` da Steam e ficam em **cache local**
-  (30 minutos) para não sobrecarregar nem atrasar as páginas.
+- Os teus dados (jogos, wishlist…) vêm do endpoint `dynamicstore/userdata` da Steam e
+  ficam em **cache local** (30 minutos) para não sobrecarregar nem atrasar as páginas.
+- Os dados extra (DLC, removidos, cartas, bundles, perfis limitados) vêm de fontes
+  públicas da comunidade — [Barter.vg](https://bartervg.com) e
+  [Steam Tracker](https://steam-tracker.com) — com cache de **48 horas**.
 - Um `MutationObserver` apanha conteúdo carregado dinamicamente (scroll infinito, SPAs).
 - **Zero dependências**: JavaScript puro, sem jQuery nem bibliotecas externas.
 
@@ -43,7 +51,9 @@ qualquer página com links para `store.steampowered.com`, `steamcommunity.com`,
 - **↻ Atualizar dados da Steam** — força refrescamento imediato da cache.
 - **👁 Mostrar/esconder jogos que não tens** — esconde os pontos "não tens" para
   reduzir ruído visual (útil em páginas com centenas de links).
-- **🧹 Limpar cache** — apaga os dados guardados localmente.
+- **🧩 Ligar/desligar extras** — desativa os emblemas de DLC, removidos, cartas e
+  bundles se só quiseres o essencial.
+- **🧹 Limpar cache** — apaga todos os dados guardados localmente.
 
 ## Privacidade
 
