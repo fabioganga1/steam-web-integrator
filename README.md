@@ -1,6 +1,6 @@
 # <img src="docs/steam-icon.svg" width="32" alt="Steam"> Steam Web Integrator
 
-![Versão](https://img.shields.io/badge/vers%C3%A3o-0.5.0-blue)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-0.6.0-blue)
 ![Tampermonkey](https://img.shields.io/badge/Tampermonkey-compat%C3%ADvel-00485b?logo=tampermonkey)
 ![Sem dependências](https://img.shields.io/badge/depend%C3%AAncias-zero-4caf50)
 
@@ -57,6 +57,13 @@ qualquer página com links para `store.steampowered.com`, `steamcommunity.com`,
 
 ## Privacidade
 
-Os teus dados **nunca saem do teu browser**: o script fala apenas com a própria Steam
-e guarda a cache localmente no Tampermonkey. Não há servidores de terceiros, análises
-nem tracking.
+Os teus dados **nunca saem do teu browser**. A lista de jogos, wishlist, ignorados e
+seguidos vem da própria Steam (com a tua sessão) e fica em cache local no Tampermonkey.
+
+Com os extras ligados, o script **descarrega** listas públicas do
+[Barter.vg](https://bartervg.com) e do [Steam Tracker](https://steam-tracker.com) — catálogos
+gerais de DLC, cartas, bundles e jogos removidos, iguais para toda a gente. São downloads:
+não vai lá nenhum dado teu, nem sequer que jogos tens. Se preferires que o script só fale
+com a Steam, desliga-os no menu do Tampermonkey.
+
+Sem análises, sem tracking, sem servidores meus.
